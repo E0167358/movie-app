@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package people;
+
+option java_multiple_files = true;
+option java_package = "com.movieapp.grpc.people";
+
+service PeopleService {
+  rpc GetPerson (PersonIdRequest) returns (Person);
+  rpc ListPeople (ListPeopleRequest) returns (PersonListResponse);
+  rpc SearchPeople (SearchPeopleRequest) returns (PersonListResponse);
+  rpc CreatePerson (SavePersonRequest) returns (Person);
+  rpc UpdatePerson (UpdatePersonRequest) returns (Person);
+  rpc DeletePerson (PersonIdRequest) returns (DeleteResponse);
+
+  // credit = which person worked on which movie and as what
+  rpc AddCredit (AddCreditRequest) returns (Credit);
+  rpc RemoveCredit (CreditIdRequest) returns (DeleteResponse);
+  rpc GetCreditsByMovie (MovieCreditsRequest) returns (CreditListResponse);
+  rpc GetCreditsByPerson (PersonIdRequest) returns (CreditListResponse);
+  // called by gateway when a movie is deleted
+  rpc DeleteCreditsByMovie (MovieCreditsRequest) returns (DeleteResponse);
+}
+
+// ACTOR = cast, the rest = creators
+enum Role {
+  ROLE_UNSPECIFIED = 0;
+  ACTOR = 1;
+  DIRECTOR = 2;
+  WRITER = 3;
+  PRODUCER = 4;
+}
+
+message Person {
+  int64 id = 1;
+  string name = 2;
+  string bio = 3;
+  int32 birth_year = 4; // 0 if unknown
+}
+
+message PersonIdRequest {
+  int64 id = 1;
+}
+
+message ListPeopleRequest {
+  int32 page = 1;
+  int32 size = 2;
+}
+
+message SearchPeopleRequest {
+  string query = 1;
+  int32 page = 2;
+  int32 size = 3;
+}
+
+message PersonListResponse {
+  repeated Person people = 1;
+  int64 total_count = 2;
+}
+
+message SavePersonRequest {
+  string name = 1;
+  string bio = 2;
+  int32 birth_year = 3;
+}
+
+message UpdatePersonRequest {
+  int64 id = 1;
+  SavePersonRequest person = 2;
+}
+
+message DeleteResponse {
+  bool success = 1;
+}
+
+message Credit {
+  int64 id = 1;
+  int64 movie_id = 2;
+  Role role = 3;
+  string character_name = 4; // only for ACTOR
+  Person person = 5;
+}
+
+message AddCreditRequest {
+  int64 movie_id = 1;
+  int64 person_id = 2;
+  Role role = 3;
+  string character_name = 4;
+}
+
+message CreditIdRequest {
+  int64 id = 1;
+}
+
+message MovieCreditsRequest {
+  int64 movie_id = 1;
+}
+
+message CreditListResponse {
+  repeated Credit credits = 1;
+}

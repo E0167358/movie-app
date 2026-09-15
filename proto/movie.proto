@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package movie;
+
+option java_multiple_files = true;
+option java_package = "com.movieapp.grpc.movie";
+
+service MovieService {
+  rpc GetMovie (MovieIdRequest) returns (Movie);
+  rpc ListMovies (ListMoviesRequest) returns (MovieListResponse);
+  rpc SearchMovies (SearchMoviesRequest) returns (MovieListResponse);
+  rpc CreateMovie (SaveMovieRequest) returns (Movie);
+  rpc UpdateMovie (UpdateMovieRequest) returns (Movie);
+  rpc DeleteMovie (MovieIdRequest) returns (DeleteResponse);
+
+  // image is sent in small chunks so we don't hit the 4MB grpc message limit
+  rpc UploadArtwork (stream ArtworkChunk) returns (Movie);
+  rpc DownloadArtwork (MovieIdRequest) returns (stream ArtworkChunk);
+}
+
+message Movie {
+  int64 id = 1;
+  string title = 2;
+  string description = 3;
+  int32 release_year = 4;
+  string genre = 5;
+  int32 duration_minutes = 6;
+  bool has_artwork = 7;
+}
+
+message MovieIdRequest {
+  int64 id = 1;
+}
+
+message ListMoviesRequest {
+  int32 page = 1; // starts from 0
+  int32 size = 2;
+}
+
+message SearchMoviesRequest {
+  string query = 1;
+  int32 page = 2;
+  int32 size = 3;
+}
+
+message MovieListResponse {
+  repeated Movie movies = 1;
+  int64 total_count = 2;
+}
+
+message SaveMovieRequest {
+  string title = 1;
+  string description = 2;
+  int32 release_year = 3;
+  string genre = 4;
+  int32 duration_minutes = 5;
+}
+
+message UpdateMovieRequest {
+  int64 id = 1;
+  SaveMovieRequest movie = 2;
+}
+
+message DeleteResponse {
+  bool success = 1;
+}
+
+// first message should be info, then the rest are chunks
+message ArtworkChunk {
+  oneof data {
+    ArtworkInfo info = 1;
+    bytes chunk = 2;
+  }
+}
+
+message ArtworkInfo {
+  int64 movie_id = 1;
+  string file_name = 2;
+  string content_type = 3;
+}

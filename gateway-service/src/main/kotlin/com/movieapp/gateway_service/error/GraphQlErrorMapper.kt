@@ -24,6 +24,7 @@ object GraphQlErrorMapper {
 
         return when (error) {
             is NotFoundException -> ErrorInfo(ErrorType.NOT_FOUND, error.message ?: "Not found", "NOT_FOUND")
+            is BadRequestException -> ErrorInfo(ErrorType.BAD_REQUEST, error.message ?: "Bad request", "INVALID_ARGUMENT")
             is StatusRuntimeException -> fromGrpcStatus(error.status)
             else -> null // not ours, let Spring GraphQL handle it
         }

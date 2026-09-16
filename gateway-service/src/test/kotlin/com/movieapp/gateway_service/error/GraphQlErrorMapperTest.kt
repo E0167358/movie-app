@@ -85,6 +85,15 @@ class GraphQlErrorMapperTest {
     }
 
     @Test
+    fun `gateway BadRequestException becomes BAD_REQUEST`() {
+        val info = GraphQlErrorMapper.map(BadRequestException("Artwork data is not valid base64"))
+
+        assertEquals(ErrorType.BAD_REQUEST, info?.type)
+        assertEquals("Artwork data is not valid base64", info?.message)
+        assertEquals("INVALID_ARGUMENT", info?.code)
+    }
+
+    @Test
     fun `unknown exceptions are left for Spring GraphQL to handle`() {
         assertNull(GraphQlErrorMapper.map(IllegalStateException("something else")))
     }

@@ -40,6 +40,12 @@ class GrpcClientConfig {
         return MovieServiceGrpc.newBlockingStub(channel)
     }
 
+    // blocking stubs can't do client streaming, so the artwork upload uses the async stub
+    @Bean
+    fun movieAsyncStub(@Qualifier("movieChannel") channel: ManagedChannel): MovieServiceGrpc.MovieServiceStub {
+        return MovieServiceGrpc.newStub(channel)
+    }
+
     @Bean
     fun peopleStub(@Qualifier("peopleChannel") channel: ManagedChannel): PeopleServiceGrpc.PeopleServiceBlockingStub {
         return PeopleServiceGrpc.newBlockingStub(channel)

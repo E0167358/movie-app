@@ -71,3 +71,16 @@ data class CreditInput(
     val role: Role,
     val characterName: String? = null
 )
+
+// the image is sent as base64 text inside the GraphQL mutation
+data class ArtworkInput(
+    val movieId: Long,
+    val fileName: String,
+    val contentType: String,
+    val base64Data: String
+)
+
+class ArtworkFile(
+    val contentType: String,
+    val bytes: ByteArray
+)

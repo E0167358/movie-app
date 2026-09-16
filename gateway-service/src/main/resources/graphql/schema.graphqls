@@ -17,6 +17,8 @@ type Mutation {
 
     addCredit(input: CreditInput!): Credit!
     removeCredit(id: ID!): Boolean!
+
+    uploadArtwork(input: ArtworkInput!): Movie!
 }
 
 type Movie {
@@ -92,4 +94,13 @@ input CreditInput {
     personId: ID!
     role: Role!
     characterName: String
+}
+
+"Image sent as base64 text. Only JPEG, PNG and WEBP, max 5 MB."
+input ArtworkInput {
+    movieId: ID!
+    fileName: String!
+    contentType: String!
+    "plain base64, or a data url like data:image/png;base64,..."
+    base64Data: String!
 }

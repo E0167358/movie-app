@@ -2,7 +2,9 @@ package com.movieapp.gateway_service.error
 
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
+import org.springframework.core.convert.ConversionFailedException
 import org.springframework.graphql.execution.ErrorType
+import org.springframework.validation.BindException
 import java.util.concurrent.CompletionException
 
 data class ErrorInfo(
@@ -17,6 +19,7 @@ object GraphQlErrorMapper {
 
     const val SERVICE_UNAVAILABLE_MESSAGE = "Service is not available right now, please try again"
     const val GENERIC_MESSAGE = "Something went wrong"
+    const val BAD_ARGUMENT_MESSAGE = "One of the arguments has the wrong format"
 
     fun map(ex: Throwable): ErrorInfo? {
         // errors from CompletableFuture (search) are wrapped in CompletionException
@@ -26,6 +29,13 @@ object GraphQlErrorMapper {
             is NotFoundException -> ErrorInfo(ErrorType.NOT_FOUND, error.message ?: "Not found", "NOT_FOUND")
             is BadRequestException -> ErrorInfo(ErrorType.BAD_REQUEST, error.message ?: "Bad request", "INVALID_ARGUMENT")
             is StatusRuntimeException -> fromGrpcStatus(error.status)
+
+            // GraphQL ID is text, but our controllers take a Long. asking for
+            // movie(id: "abc") fails while Spring binds the argument, and without
+            // this the caller would get a confusing INTERNAL_ERROR
+            is ConversionFailedException, is BindException ->
+                ErrorInfo(ErrorType.BAD_REQUEST, BAD_ARGUMENT_MESSAGE, "INVALID_ARGUMENT")
+
             else -> null // not ours, let Spring GraphQL handle it
         }
     }

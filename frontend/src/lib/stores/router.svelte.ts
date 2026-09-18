@@ -7,6 +7,13 @@ export interface Route {
   id?: string;
 }
 
+// ids in this app are always numbers. anything else in the url is a typo
+// or a broken link, so we show the not-found page instead of asking
+// the server for a movie called "abc"
+function isId(value: string): boolean {
+  return /^\d+$/.test(value);
+}
+
 function parse(hash: string): Route {
   // "#/movies/1" -> ["movies", "1"]
   const parts = hash.replace(/^#\/?/, '').split('/').filter(Boolean);
@@ -15,16 +22,20 @@ function parse(hash: string): Route {
     return { name: 'movies' };
   }
 
-  const [first, second] = parts;
+  const [first, second, third] = parts;
 
   if (first === 'movies') {
     if (second === 'new') return { name: 'movie-new' };
+    if (second && !isId(second)) return { name: 'not-found' };
+    if (second && third === 'edit') return { name: 'movie-edit', id: second };
     if (second) return { name: 'movie-detail', id: second };
     return { name: 'movies' };
   }
 
   if (first === 'people') {
     if (second === 'new') return { name: 'person-new' };
+    if (second && !isId(second)) return { name: 'not-found' };
+    if (second && third === 'edit') return { name: 'person-edit', id: second };
     if (second) return { name: 'person-detail', id: second };
     return { name: 'people' };
   }

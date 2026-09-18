@@ -3,7 +3,10 @@ package com.movieapp.gateway_service.error
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import org.junit.jupiter.api.Test
+import org.springframework.core.convert.ConversionFailedException
+import org.springframework.core.convert.TypeDescriptor
 import org.springframework.graphql.execution.ErrorType
+import org.springframework.validation.BindException
 import java.util.concurrent.CompletionException
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -90,6 +93,31 @@ class GraphQlErrorMapperTest {
 
         assertEquals(ErrorType.BAD_REQUEST, info?.type)
         assertEquals("Artwork data is not valid base64", info?.message)
+        assertEquals("INVALID_ARGUMENT", info?.code)
+    }
+
+    @Test
+    fun `an id that is not a number becomes BAD_REQUEST instead of INTERNAL_ERROR`() {
+        // what happens on a query like movie(id: "abc")
+        val failure = ConversionFailedException(
+            TypeDescriptor.valueOf(String::class.java),
+            TypeDescriptor.valueOf(java.lang.Long::class.java),
+            "abc",
+            NumberFormatException("For input string: \"abc\"")
+        )
+
+        val info = GraphQlErrorMapper.map(failure)
+
+        assertEquals(ErrorType.BAD_REQUEST, info?.type)
+        assertEquals(GraphQlErrorMapper.BAD_ARGUMENT_MESSAGE, info?.message)
+        assertEquals("INVALID_ARGUMENT", info?.code)
+    }
+
+    @Test
+    fun `a binding failure also becomes BAD_REQUEST`() {
+        val info = GraphQlErrorMapper.map(BindException(Any(), "input"))
+
+        assertEquals(ErrorType.BAD_REQUEST, info?.type)
         assertEquals("INVALID_ARGUMENT", info?.code)
     }
 

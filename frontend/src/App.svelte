@@ -1,6 +1,11 @@
 <script lang="ts">
   import { router } from './lib/stores/router.svelte';
   import MoviesPage from './lib/pages/MoviesPage.svelte';
+  import MovieDetailPage from './lib/pages/MovieDetailPage.svelte';
+  import MovieFormPage from './lib/pages/MovieFormPage.svelte';
+  import PeoplePage from './lib/pages/PeoplePage.svelte';
+  import PersonDetailPage from './lib/pages/PersonDetailPage.svelte';
+  import PersonFormPage from './lib/pages/PersonFormPage.svelte';
   import Toasts from './lib/components/Toasts.svelte';
 
   let route = $derived(router.current);
@@ -26,8 +31,35 @@
   <main>
     {#if route.name === 'movies'}
       <MoviesPage />
+    {:else if route.name === 'movie-new'}
+      <MovieFormPage />
+    {:else if route.name === 'movie-edit'}
+      <!-- the key block rebuilds the page when the id changes,
+           so the form never shows the previous movie's values -->
+      {#key route.id}
+        <MovieFormPage id={route.id} />
+      {/key}
+    {:else if route.name === 'movie-detail'}
+      {#key route.id}
+        <MovieDetailPage id={route.id!} />
+      {/key}
+    {:else if route.name === 'people'}
+      <PeoplePage />
+    {:else if route.name === 'person-new'}
+      <PersonFormPage />
+    {:else if route.name === 'person-edit'}
+      {#key route.id}
+        <PersonFormPage id={route.id} />
+      {/key}
+    {:else if route.name === 'person-detail'}
+      {#key route.id}
+        <PersonDetailPage id={route.id!} />
+      {/key}
     {:else}
-      <p class="todo">This page is coming in the next step.</p>
+      <div class="not-found">
+        <h2>Page not found</h2>
+        <a class="btn btn-primary" href="#/movies">Go to movies</a>
+      </div>
     {/if}
   </main>
 
@@ -83,8 +115,12 @@
     padding: 1.5rem;
   }
 
-  .todo {
-    color: var(--text-muted);
+  .not-found {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 3rem 1rem;
   }
 
   @media (max-width: 480px) {

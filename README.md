@@ -64,16 +64,10 @@ Gradle, Kotlin and protoc are downloaded automatically by the Gradle wrapper.
 
 ## Setup
 
-### 1. Databases
+### 1. Database
 
-Both services expect their own database. Either run them in Docker:
-
-```bash
-docker compose up -d
-```
-
-which starts `moviedb` on port 5432 and `peopledb` on port 5433, or create both
-in a local PostgreSQL:
+Both services use the same local PostgreSQL instance, with one database each.
+Run these as the `postgres` superuser (SQL Shell / psql on Windows):
 
 ```sql
 CREATE USER movie WITH PASSWORD 'movie';
@@ -82,13 +76,12 @@ CREATE USER people WITH PASSWORD 'people';
 CREATE DATABASE peopledb OWNER people;
 ```
 
-If you use a local PostgreSQL, both databases are on port 5432, so set
-people-service's URL to port 5432 in
-`people-service/src/main/resources/application.properties`.
+The connection settings are already in each service's `application.properties`,
+so there is nothing to edit.
 
-The credentials above are local development defaults and are committed on
-purpose so the project runs out of the box. A real deployment would read them
-from the environment.
+The credentials are local development defaults and are committed on purpose so
+the project runs out of the box. A real deployment would read them from the
+environment.
 
 Tables are created by Flyway the first time each service starts. No manual
 schema steps.

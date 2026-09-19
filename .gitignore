@@ -1,0 +1,21 @@
+# build output
+build/
+.gradle/
+.kotlin/
+out/
+
+# uploaded artwork, created at runtime
+uploads/
+
+# node
+node_modules/
+dist/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

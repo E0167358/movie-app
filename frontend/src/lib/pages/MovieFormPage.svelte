@@ -25,7 +25,9 @@
   });
 
   let errors = $state<Errors>({});
-  let loading = $state(Boolean(id));
+  // starts false so the "add movie" form renders straight away. load() turns
+  // it on when there is a movie to fetch
+  let loading = $state(false);
   let saving = $state(false);
   let loadError = $state<string | null>(null);
 

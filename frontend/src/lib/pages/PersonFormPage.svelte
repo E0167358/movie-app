@@ -17,7 +17,8 @@
 
   let values = $state<PersonFormValues>({ name: '', bio: '', birthYear: '' });
   let errors = $state<Errors>({});
-  let loading = $state(Boolean(id));
+  // starts false so the "add person" form renders straight away
+  let loading = $state(false);
   let saving = $state(false);
   let loadError = $state<string | null>(null);
 

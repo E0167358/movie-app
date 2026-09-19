@@ -58,7 +58,7 @@ projects generate their Java classes from the same two files.
 
 - **JDK 21** (Temurin)
 - **Node.js 22.12+** (Vite 8 needs it)
-- **PostgreSQL 17**, or Docker if you would rather run the databases in containers
+- **PostgreSQL 17**, running locally on port 5432
 
 Gradle, Kotlin and protoc are downloaded automatically by the Gradle wrapper.
 
@@ -221,10 +221,10 @@ message so internals never leak.
 - Artwork is stored on the local disk of movie-service. Multiple instances would
   need shared storage such as S3 or MinIO.
 - There is no authentication; everything is open.
-- Only the two domain databases are containerised. Containerising the services
-  themselves is the obvious next step but is not included, because I could not
-  enable virtualisation on my machine to test the images properly and I did not
-  want to ship a Dockerfile I had never run.
+- Nothing is containerised: setup is a local PostgreSQL plus three Gradle
+  processes and the Vite dev server. Adding Dockerfiles and a compose file is
+  the obvious next step, but I could not enable virtualisation on my machine to
+  test the images, and I did not want to ship a Dockerfile I had never run.
 
 ## How AI tools were used
 
@@ -258,10 +258,10 @@ debugging rather than another prompt:
   Vite's defaults during development and the app rendered a blank page, so that
   setting is now only applied when Vitest runs.
 
-**Where I chose differently from the first suggestion.** I dropped the Bean
-Validation dependency and validate in plain service classes instead, which made
-the edge cases easier to unit test, and I kept the databases in Docker while
-running the services directly, because that is what I could verify end to end
+**Where I went a different way.** I dropped the Bean Validation dependency and
+validate in plain service classes instead, which made the edge cases easier to
+unit test. I also ran everything locally — PostgreSQL plus the three services —
+rather than containerising, because that is the setup I could verify end to end
 on my machine.
 
 I can explain any file in this repository and why it is written the way it is.

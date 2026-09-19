@@ -5,6 +5,8 @@ export interface Route {
   name: string;
   // id is set for routes like #/movies/1
   id?: string;
+  // query is the "q" parameter, used by #/search?q=nolan
+  query?: string;
 }
 
 // ids in this app are always numbers. anything else in the url is a typo
@@ -14,9 +16,14 @@ function isId(value: string): boolean {
   return /^\d+$/.test(value);
 }
 
-function parse(hash: string): Route {
-  // "#/movies/1" -> ["movies", "1"]
-  const parts = hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+// exported so the tests can check routes without touching the browser url
+export function parse(hash: string): Route {
+  // "#/search?q=nolan" -> path "search", query "nolan"
+  const withoutHash = hash.replace(/^#\/?/, '');
+  const [path, queryString] = withoutHash.split('?');
+  const query = new URLSearchParams(queryString ?? '').get('q') ?? '';
+
+  const parts = path.split('/').filter(Boolean);
 
   if (parts.length === 0) {
     return { name: 'movies' };
@@ -41,7 +48,7 @@ function parse(hash: string): Route {
   }
 
   if (first === 'search') {
-    return { name: 'search' };
+    return { name: 'search', query };
   }
 
   return { name: 'not-found' };
@@ -59,6 +66,14 @@ class Router {
 
   go(path: string) {
     window.location.hash = path;
+  }
+
+  // used by the search box: changes the url without adding a history entry,
+  // otherwise every keystroke would end up in the back button
+  replace(path: string) {
+    const url = `${window.location.pathname}${window.location.search}#${path}`;
+    window.history.replaceState(null, '', url);
+    this.current = parse(`#${path}`);
   }
 }
 

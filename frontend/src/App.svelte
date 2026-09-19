@@ -6,6 +6,8 @@
   import PeoplePage from './lib/pages/PeoplePage.svelte';
   import PersonDetailPage from './lib/pages/PersonDetailPage.svelte';
   import PersonFormPage from './lib/pages/PersonFormPage.svelte';
+  import SearchPage from './lib/pages/SearchPage.svelte';
+  import SearchBar from './lib/components/SearchBar.svelte';
   import Toasts from './lib/components/Toasts.svelte';
 
   let route = $derived(router.current);
@@ -26,6 +28,8 @@
         Cast &amp; Creators
       </a>
     </nav>
+
+    <SearchBar />
   </header>
 
   <main>
@@ -51,6 +55,8 @@
       {#key route.id}
         <PersonFormPage id={route.id} />
       {/key}
+    {:else if route.name === 'search'}
+      <SearchPage query={route.query ?? ''} />
     {:else if route.name === 'person-detail'}
       {#key route.id}
         <PersonDetailPage id={route.id!} />

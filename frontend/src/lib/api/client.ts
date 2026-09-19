@@ -6,11 +6,14 @@ const GRAPHQL_URL = '/graphql';
 export class GraphQlError extends Error {
   // "code" comes from extensions.code in the gateway, e.g. NOT_FOUND or ALREADY_EXISTS
   readonly code: string;
+  // which field failed, e.g. ["search", "people"]. used by the search page
+  readonly path: string[];
 
-  constructor(message: string, code: string) {
+  constructor(message: string, code: string, path: string[] = []) {
     super(message);
     this.name = 'GraphQlError';
     this.code = code;
+    this.path = path;
   }
 }
 
@@ -18,14 +21,20 @@ interface GraphQlResponse<T> {
   data?: T | null;
   errors?: Array<{
     message: string;
+    path?: Array<string | number>;
     extensions?: { code?: string };
   }>;
 }
 
-export async function request<T>(
+export interface PartialResult<T> {
+  data: T | null;
+  errors: GraphQlError[];
+}
+
+async function send<T>(
   query: string,
-  variables: Record<string, unknown> = {},
-): Promise<T> {
+  variables: Record<string, unknown>,
+): Promise<GraphQlResponse<T>> {
   let response: Response;
 
   try {
@@ -43,13 +52,26 @@ export async function request<T>(
     throw new GraphQlError(`Server returned ${response.status}`, 'HTTP_ERROR');
   }
 
-  const body = (await response.json()) as GraphQlResponse<T>;
+  return (await response.json()) as GraphQlResponse<T>;
+}
 
-  // GraphQL can return data AND errors at the same time, for example when
-  // the movie search worked but the people search failed
+function toError(error: NonNullable<GraphQlResponse<unknown>['errors']>[number]): GraphQlError {
+  return new GraphQlError(
+    error.message,
+    error.extensions?.code ?? 'UNKNOWN',
+    (error.path ?? []).map(String),
+  );
+}
+
+// normal calls: any error means the call failed
+export async function request<T>(
+  query: string,
+  variables: Record<string, unknown> = {},
+): Promise<T> {
+  const body = await send<T>(query, variables);
+
   if (body.errors && body.errors.length > 0) {
-    const first = body.errors[0];
-    throw new GraphQlError(first.message, first.extensions?.code ?? 'UNKNOWN');
+    throw toError(body.errors[0]);
   }
 
   if (!body.data) {
@@ -57,4 +79,19 @@ export async function request<T>(
   }
 
   return body.data;
+}
+
+// search calls: GraphQL can return data AND errors together, for example when
+// the movie search worked but people-service is down. we keep both so the page
+// can show the results it has
+export async function requestPartial<T>(
+  query: string,
+  variables: Record<string, unknown> = {},
+): Promise<PartialResult<T>> {
+  const body = await send<T>(query, variables);
+
+  return {
+    data: body.data ?? null,
+    errors: (body.errors ?? []).map(toError),
+  };
 }
